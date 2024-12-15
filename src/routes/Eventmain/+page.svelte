@@ -15,6 +15,11 @@
         { id: 3, name: "Networking Event", date: "2024-12-20", location: "Online", description: "A virtual networking event for students and professionals." }
     ];
 
+    // Computed property to filter events based on search query
+    $: filteredEvents = events.filter(event => 
+        event.name.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+
     // Simulate fetching events from a database
     const fetchEvents = async () => {
         console.log("Fetching events...");
@@ -22,8 +27,8 @@
         // events = await fetch('/api/events');
     };
 
-     // Event functions
-     const viewEventDetails = (eventId: number) => {
+    // Event functions
+    const viewEventDetails = (eventId: number) => {
         // Navigate to the EventPage with the specific event ID
         goto("/Eventpage");
     };
@@ -113,9 +118,9 @@
 </style>
 
 <!-- Main Page Content -->
-<div class="bg-transparent p-4">
+<div class="bg-transparent p-4 mt-6">
     <!-- Search Bar and Create Event Button -->
-    <div class="w-full flex items-center mb-6 mt-[100px]">
+    <div class="flex flex-col sm:flex-row items-center mb-6 mt-[100px]">
         <!-- Search Bar -->
         <input
             type="text"
@@ -124,10 +129,10 @@
             bind:value={searchQuery}
         />
         
-        <div class="pl-20 ml-6">
+        <div class="pl-0 sm:pl-8 mt-4 sm:mt-0">
             <!-- Create Event Button -->
             <button 
-                class="ml-10 bg-orange-500 text-white py-2 px-6 rounded-md hover:bg-orange-600 transition-all"
+                class="bg-orange-500 text-white py-2 px-6 rounded-md hover:bg-orange-600 transition-all"
                 on:click={() => createEventFormVisible = true}
             >
                 Create Event
@@ -149,7 +154,7 @@
                 </tr>
             </thead>
             <tbody>
-                {#each events as event}
+               {#each filteredEvents as event}
                     <tr class="hover:bg-gray-100">
                         <td class="py-2 px-4">{event.name}</td>
                         <td class="py-2 px-4">{event.description}</td>
@@ -219,12 +224,11 @@
                         class="w-full px-4 py-2 border border-gray-300 rounded-md"
                     />
                 </div>
+
                 <!-- QR Code Preview -->
                 {#if qrCodeImage}
-                    <div class="mt-4">
-                        <h3 class="text-xl font-semibold mb-2">Generated QR Code</h3>
-                        <img src={qrCodeImage} alt="QR Code" class="w-32 h-32" />
-                    </div>
+                    <div class="text-xl font-semibold mb-2">Generated QR Code</div>
+                    <img src={qrCodeImage} alt="QR Code" class="w-32 h-32" />
                 {/if}
 
                 <div class="flex justify-between">
@@ -232,15 +236,16 @@
                     <button 
                         type="button" 
                         on:click={cancelEventCreation}
-                        class="bg-gray-500 text-white px-6 py-2 rounded-md hover:bg-gray-600"
+                        class="bg-gray-500 text-white py-2 px-6 rounded-md hover:bg-gray-600"
                     >
                         Cancel
                     </button>
-                    <!-- Create Event Button -->
+
+                    <!-- Submit Button -->
                     <button 
                         type="button" 
                         on:click={createEvent}
-                        class="bg-orange-500 text-white px-6 py-2 rounded-md hover:bg-orange-600"
+                        class="bg-green-500 text-white py-2 px-6 rounded-md hover:bg-green-600"
                     >
                         Create Event
                     </button>

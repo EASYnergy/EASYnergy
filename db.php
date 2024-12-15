@@ -1,13 +1,22 @@
 <?php
-$servername = "localhost";
-$username = "root";  // Replace with your database username
-$password = "";  // Replace with your database password
-$dbname = "event";  // Replace with your database name
+// Database configuration
+$host = "127.0.0.1";
+$dbname = "event";
+$username = "root"; // Replace with your database username
+$password = ""; // Replace with your database password
 
 try {
-    $pdo = new PDO("mysql:host=$servername;dbname=$dbname", $username, $password);
+    // Create a PDO instance
+    $pdo = new PDO("mysql:host=$host;dbname=$dbname;charset=utf8mb4", $username, $password);
+
+    // Set PDO error mode to exception
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+
+    // Optional: Set default fetch mode to associative array
+    $pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
+
+    echo "Database connection established successfully!";
 } catch (PDOException $e) {
-    echo "Connection failed: " . $e->getMessage();
+    die("Database connection failed: " . $e->getMessage());
 }
 ?>
