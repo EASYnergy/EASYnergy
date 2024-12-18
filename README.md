@@ -1,3 +1,6 @@
+# PUT THE FILES INSIDE THE FOLDER OF "PHP" TO YOUR LOCAL XAMPP 'HTDOCS'
+  Create a folder named "EASYnergy" and put the files inside that
+
 # sv
 
 Everything you need to build a Svelte project, powered by [`sv`](https://github.com/sveltejs/cli).
