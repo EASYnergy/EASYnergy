@@ -1,3 +1,5 @@
+# PUT THE FILES INSIDE THE FOLDER OF "PHP" TO YOUR LOCAL XAMPP 'HTDOCS' FOR THE BACKEND TO WORK
+
 # sv
 
 Everything you need to build a Svelte project, powered by [`sv`](https://github.com/sveltejs/cli).
