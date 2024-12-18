@@ -1,11 +1,17 @@
 <?php
+// Allow Cross-Origin requests for the frontend origin
+header("Access-Control-Allow-Origin: http://localhost:5173"); 
+header("Access-Control-Allow-Methods: POST, OPTIONS");
+header("Access-Control-Allow-Headers: Content-Type, Accept");
+
+// Handle preflight OPTIONS request
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    http_response_code(200);
+    exit;
+}
+
 // Include the database connection
 require_once 'db.php';
-
-// Allow Cross-Origin requests
-header("Access-Control-Allow-Origin: *");
-header("Access-Control-Allow-Methods: POST");
-header("Access-Control-Allow-Headers: Content-Type");
 
 // Check if the request is POST
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -18,7 +24,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $password = $input['password'] ?? '';
     $role = filter_var($input['role'] ?? '', FILTER_SANITIZE_STRING);
 
-    if (!$username || !$email || !$password || !$role) {
+    if (empty($username) || empty($email) || empty($password) || empty($role)) {
         echo json_encode(['status' => 'error', 'message' => 'All fields are required.']);
         exit;
     }
@@ -45,14 +51,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt->bindParam(':role', $role, PDO::PARAM_STR);
 
         if ($stmt->execute()) {
+            // Return success as JSON
             echo json_encode(['status' => 'success', 'message' => 'Signup successful!']);
+            exit;
         } else {
+            // Return failure as JSON
             echo json_encode(['status' => 'error', 'message' => 'Signup failed. Please try again.']);
+            exit;
         }
     } catch (PDOException $e) {
+        // Return database error as JSON
         echo json_encode(['status' => 'error', 'message' => 'Database error: ' . $e->getMessage()]);
+        exit;
     }
 } else {
+    // Handle invalid request method
     echo json_encode(['status' => 'error', 'message' => 'Invalid request method.']);
+    exit;
 }
 ?>

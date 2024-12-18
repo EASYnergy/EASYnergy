@@ -34,5 +34,10 @@
 	},
 	"dependencies": {
 		"qrcode": "^1.5.4"
-	}
+	},
+	"description": "Everything you need to build a Svelte project, powered by [`sv`](https://github.com/sveltejs/cli).",
+	"main": "eslint.config.js",
+	"keywords": [],
+	"author": "",
+	"license": "ISC"
 }

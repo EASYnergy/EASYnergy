@@ -2,6 +2,18 @@
 // Include the database connection file
 require_once 'db.php';
 
+// Add CORS headers
+header("Access-Control-Allow-Origin: http://localhost:5173"); // Allow requests from your frontend
+header("Access-Control-Allow-Methods: POST, OPTIONS"); // Allow POST and preflight OPTIONS methods
+header("Access-Control-Allow-Headers: Content-Type, Authorization"); // Allow required headers
+
+// Handle preflight requests
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    // Respond to preflight request
+    http_response_code(200);
+    exit;
+}
+
 // Check if the request method is POST
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Retrieve and sanitize input

@@ -9,59 +9,71 @@
 
   // Function to handle login
   async function handleLogin() {
-    if (email.trim() !== '' && password.trim() !== '') {
-      try {
-        const response = await fetch('http://localhost/EASYnergy/login.php', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ email, password }),
-        });
+  if (email.trim() !== '' && password.trim() !== '') {
+    try {
+      const response = await fetch('http://localhost/EASYnergy/login.php', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password }),
+      });
 
-        if (response.ok) {
-          const data = await response.json();
-          alert('Login successful!');
-          goto('/Eventmain'); // Navigate to the Eventmain page
-        } else {
-          alert('Login failed. Please check your credentials.');
-        }
-      } catch (error) {
-        console.error('Error during login:', error);
-        alert('An error occurred. Please try again.');
+      console.log('Response:', response);
+
+      if (response.ok) {
+        const data = await response.json();
+        console.log('Data:', data);
+        alert('Login successful!');
+        goto('/Eventmain'); // Navigate to Eventmain page
+      } else {
+        const errorData = await response.text();
+        console.error('Error Response:', errorData);
+        alert('Login failed. Please check your credentials.');
       }
-    } else {
-      alert('Please fill in both email and password.');
+    } catch (error) {
+      console.error('Error during login:', error);
+      alert('An error occurred. Please try again.');
     }
+  } else {
+    alert('Please fill in both email and password.');
   }
+}
+
 
   // Function to handle signup
   async function handleSignup() {
-    if (username.trim() !== '' && email.trim() !== '' && password.trim() !== '' && role.trim() !== '') {
-      try {
-        const response = await fetch('http://localhost/EASYnergy/signup.php', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ username, email, password, role }),
-        });
+  if (username.trim() !== '' && email.trim() !== '' && password.trim() !== '' && role.trim() !== '') {
+    try {
+      console.log('Sending signup data:', { username, email, password, role });
 
-        if (response.ok) {
-          const data = await response.json();
-          alert('Signup successful!');
-          isSignup = false; // Switch back to login form
-        } else {
-          alert('Signup failed. Please try again.');
-        }
-      } catch (error) {
-        console.error('Error during signup:', error);
-        alert('An error occurred. Please try again.');
+      const response = await fetch('http://localhost/EASYnergy/signup.php', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ username, email, password, role }),
+      });
+
+      // Check if the response is OK
+      if (response.ok) {
+        const data = await response.json();
+        console.log('Signup response:', data);
+        alert('Signup successful!');
+        isSignup = false; // Switch back to login form
+      } else {
+        const errorData = await response.text();
+        console.error('Signup failed:', errorData);
+        alert('Signup failed. Please try again.');
       }
-    } else {
-      alert('Please fill in all fields.');
+    } catch (error) {
+      console.error('Error during signup:', error);
+      alert('An error occurred. Please try again.');
     }
+  } else {
+    alert('Please fill in all fields.');
   }
+}
 </script>
 
 <div class="fixed w-full h-full pb-0 grid grid-cols-3" style="background-color: #400000;">
