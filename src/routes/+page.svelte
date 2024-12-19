@@ -133,8 +133,7 @@
               bind:value={role}
               class="mt-1 block w-full px-4 py-2 bg-transparent border-2 text-black rounded-lg focus:ring-2 focus:ring-orange-400 focus:outline-none">
               <option value="">Select your role</option>
-              <option value="student">Student</option>
-              <option value="faculty">Faculty</option>
+              <option value="admin">Admin</option>
             </select>
           </div>
           <button
