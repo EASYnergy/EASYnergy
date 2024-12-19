@@ -128,9 +128,9 @@
             class="w-full sm:w-2/3 md:w-3/4 px-4 py-2 bg-gray-100 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500"
             bind:value={searchQuery}
         />
-        
-        <div class="pl-0 sm:pl-8 mt-4 sm:mt-0">
-            <!-- Create Event Button -->
+
+        <!-- Create Event Button -->
+        <div class="ml-auto mt-4 sm:mt-0 mr-2">
             <button 
                 class="bg-orange-500 text-white py-2 px-6 rounded-md hover:bg-orange-600 transition-all"
                 on:click={() => createEventFormVisible = true}
@@ -154,8 +154,8 @@
                 </tr>
             </thead>
             <tbody>
-               {#each filteredEvents as event}
-                    <tr class="hover:bg-gray-100">
+                {#each filteredEvents as event, i}
+               <tr class={i % 2 === 0 ? 'bg-gray-100' : 'bg-white hover:bg-gray-200'}>
                         <td class="py-2 px-4">{event.name}</td>
                         <td class="py-2 px-4">{event.description}</td>
                         <td class="py-2 px-4">{event.date}</td>

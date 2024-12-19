@@ -12,7 +12,7 @@
   <div class="min-h-screen bg-gray-100 p-6">
     <!-- Report Title -->
     <div class="mb-8 text-center">
-      <h1 class="text-3xl font-bold text-gray-800">Monthly Report</h1>
+      <h1 class="text-3xl font-bold text-gray-800">Overall Report</h1>
       <p class="text-gray-600">Overview of student activities and updates</p>
     </div>
   

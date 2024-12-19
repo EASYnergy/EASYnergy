@@ -1,45 +1,75 @@
     <script lang="ts">
         import { onMount } from 'svelte';
+        import { writable } from 'svelte/store'; // Make sure to import writable
 
         let isSideNavOpen = false;
         let isClosing = false;
+        let username = writable('');
+        let email = writable('');
 
-        function toggleSideNav() {
-            if (isSideNavOpen) {
-                isClosing = true;
-                setTimeout(() => {
-                    isSideNavOpen = false;
-                    isClosing = false;
-                }, 300); // Match the duration of the slide animation
+        // Function to fetch user details from the backend
+    async function getUserDetails() {
+        try {
+            const response = await fetch('/api/user/details', {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('authToken')}` // Include token if needed
+                }
+            });
+            
+            if (response.ok) {
+                const userData = await response.json();
+                username.set(userData.username);  // Set the fetched username
+                email.set(userData.email);  // Set the fetched email
             } else {
-                isSideNavOpen = true;
+                // Handle error if user data is not found
+                username.set('Guest');
+                email.set('Not available');
             }
+        } catch (error) {
+            console.error('Error fetching user details:', error);
+            username.set('Guest');
+            email.set('Not available');
         }
+    }
 
-        // Close nav when clicking outside
-        function handleOutsideClick(event: MouseEvent) {
-            const sideNav = document.getElementById('side-nav');
-            const easynergyLogo = document.getElementById('easynergy-logo');
-            
-            if (isSideNavOpen && 
-                sideNav && 
-                easynergyLogo && 
-                !sideNav.contains(event.target as Node) && 
-                !easynergyLogo.contains(event.target as Node)
-            ) {
-                toggleSideNav();
-            }
+    function toggleSideNav() {
+        if (isSideNavOpen) {
+            isClosing = true;
+            setTimeout(() => {
+                isSideNavOpen = false;
+                isClosing = false;
+            }, 300); // Match the duration of the slide animation
+        } else {
+            isSideNavOpen = true;
         }
+    }
 
-        onMount(() => {
-            document.addEventListener('click', handleOutsideClick);
-            
-            return () => {
-                document.removeEventListener('click', handleOutsideClick);
-            };
-        });
+    // Close nav when clicking outside
+    function handleOutsideClick(event: MouseEvent) {
+        const sideNav = document.getElementById('side-nav');
+        const easynergyLogo = document.getElementById('easynergy-logo');
+        
+        if (isSideNavOpen && 
+            sideNav && 
+            easynergyLogo && 
+            !sideNav.contains(event.target as Node) && 
+            !easynergyLogo.contains(event.target as Node)
+        ) {
+            toggleSideNav();
+        }
+    }
 
-        // Define the logout function
+    onMount(() => {
+        getUserDetails(); // Get the user details when the component mounts
+        document.addEventListener('click', handleOutsideClick);
+        
+        return () => {
+            document.removeEventListener('click', handleOutsideClick);
+        };
+    });
+
+    // Define the logout function
     function logout() {
         // Clear session or token
         localStorage.removeItem('authToken'); // Example: remove auth token
@@ -105,6 +135,15 @@
             width: 100px;
             cursor: pointer;
         }
+
+        .user-info {
+        margin-bottom: 20px;
+        color: #fff;
+    }
+
+    .user-info p {
+        margin: 0;
+    }
     </style>
 
     <!-- Header Container -->
@@ -139,6 +178,11 @@
     <!-- <div class="mb-5 text-left mt-0 pt-0">
         <img src="/EASYnergy.png" alt="EASYnergy" class="w-40 mb-4 mt-0 pt-0 mx-0"/>
     </div> -->
+    <!-- User Info -->
+    <div class="user-info">
+        <p class="text-xl font-semibold">Username: {$username}</p>
+        <p class="text-sm">Email: {$email}</p>
+    </div>
 
 
             <!-- Navigation Links -->
@@ -151,23 +195,12 @@
                 >
                     <i class="fas fa-calendar mr-3"></i>My Events
                 </a>
-                <a 
-                    href="/Profile" 
-                    class="block py-3 px-4 hover:bg-white hover:bg-opacity-20 rounded-md transition-colors"
-                >
-                    <i class="fas fa-user mr-3"></i>Profile
-                </a>
+
                 <a 
                     href="/Reports" 
                     class="block py-3 px-4 hover:bg-white hover:bg-opacity-20 rounded-md transition-colors"
                 >
                     <i class="fas fa-chart-bar mr-3"></i>Reports
-                </a>
-                <a 
-                    href="/Attendance" 
-                    class="block py-3 px-4 hover:bg-white hover:bg-opacity-20 rounded-md transition-colors"
-                >
-                    <i class="fas fa-clipboard-list mr-3"></i>Attendance
                 </a>
             </nav>
 
