@@ -26,8 +26,7 @@
         <button 
             on:click={goBack} 
             aria-label="Back to Events"
-            class="mr-4 mt-3 text-orange-400  hover:text-gray-800 transition"
-        >
+            class="mr-4 mt-3 text-orange-400  hover:text-gray-800 transition">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
             </svg>

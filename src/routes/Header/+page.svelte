@@ -10,7 +10,7 @@
         // Function to fetch user details from the backend
     async function getUserDetails() {
         try {
-            const response = await fetch('/api/user/details', {
+            const response = await fetch('http://localhost:5000/api/events', {
                 method: 'GET',
                 headers: {
                     'Authorization': `Bearer ${localStorage.getItem('authToken')}` // Include token if needed
