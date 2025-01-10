@@ -4,7 +4,9 @@
     import QRCode from 'qrcode';
     import Header from '../Header/+page.svelte';
 
-    let userName: string = "John Doe"; // Example user name
+    let qrModalVisible = false;
+    let qrImageSrc = "";
+    let qrEventName = "";
     let searchQuery: string = ""; // Bind to the search input
     let createEventFormVisible = false; // Controls the visibility of the create event form
     let editEventFormVisible = false; // Controls the visibility of the edit event form
@@ -119,11 +121,8 @@ const createEvent = async () => {
     }
 
     try {
-        const qrCodeData = `Event: ${eventForm.title}\nDescription: ${eventForm.description}\nStart Time: ${eventForm.startTime}\nEnd Time: ${eventForm.endTime}\nLocation: ${eventForm.location}\nSpeaker: ${eventForm.speaker}`;
-        const qrCodeURL = await QRCode.toDataURL(qrCodeData);
-
+        // Prepare event data without QR code
         const newEvent = {
-            user_id: 1,
             event_name: eventForm.title,
             event_description: eventForm.description,
             location: eventForm.location,
@@ -131,9 +130,9 @@ const createEvent = async () => {
             event_date: eventForm.startTime.split('T')[0],
             start_time: eventForm.startTime,
             end_time: eventForm.endTime,
-            qr_code: qrCodeURL,
         };
 
+        // Send event data to the backend
         const response = await fetch('http://localhost:5000/api/events', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -145,16 +144,18 @@ const createEvent = async () => {
             throw new Error(errorResponse.error || `Failed to create event (Status: ${response.status})`);
         }
 
-        alert('Event created successfully!');
+        const result = await response.json();
+        alert(`Event created successfully! Event ID: ${result.event_id}`);
         fetchEvents();
         cancelEventCreation();
-    } catch (error: unknown) {
+    } catch (error) {
+        // Narrow the type of error
         if (error instanceof Error) {
-            console.error(error.message);
+            console.error(error);
             alert(`Error creating event: ${error.message}`);
         } else {
-            console.error('An unknown error occurred:', error);
-            alert('An unknown error occurred while creating the event.');
+            console.error("An unknown error occurred:", error);
+            alert("Error creating event: An unknown error occurred");
         }
     }
 };
@@ -242,15 +243,39 @@ const updateEvent = async () => {
     editEventFormVisible = false;  // Hide the form after cancellation
     };
 
+    const generateQRCode = async (eventId: string): Promise<void> => {
+    try {
+        const response = await fetch(`http://localhost:5000/api/events/${eventId}/generate-qr`);
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.message || "Failed to generate QR code");
+        }
+        const data = await response.json();
+        qrImageSrc = `data:image/png;base64,${data.qr_code}`;
+        qrEventName = data.event_name;
+        qrModalVisible = true;
+    } catch (error) {
+        if (error instanceof Error) {
+            alert(`Error generating QR code: ${error.message}`);
+        } else {
+            alert("An unknown error occurred");
+        }
+    }
+};
+
+
+    const closeModal = () => {
+        qrModalVisible = false;
+        qrImageSrc = "";
+        qrEventName = "";
+    };
 
     onMount(() => {
         fetchEvents();
     });
 </script>
 
-
 <Header /> <!-- Render the Header component -->
-
 <style>
     /* Modal background */
     .modal {
@@ -312,23 +337,26 @@ const updateEvent = async () => {
     </div>
 
     <!-- Event List -->
-    <div class="w-full">
-        <table class="w-full table-auto">
-            <thead>
-                <tr>
-                    <th class="bg-white bg-opacity-30 text-black py-2 px-4 text-left">Event Name</th>
-                    <th class="bg-white bg-opacity-30 text-black py-2 px-4 text-left">Description</th>
-                    <th class="bg-white bg-opacity-30 text-black py-2 px-4 text-left">Date</th>
-                    <th class="bg-white bg-opacity-30 text-black py-2 px-4 text-left">Location</th>
-                    <th class="bg-white bg-opacity-30 text-black py-2 px-4 text-left">Speaker</th>
-                    <th class="bg-white bg-opacity-30 text-black py-2 px-4 text-left">View</th>
-                    <th class="bg-white bg-opacity-30 text-black py-2 px-4 text-left">Edit</th>
-                    <th class="bg-white bg-opacity-30 text-black py-2 px-4 text-left">Delete</th>
-                </tr>
-            </thead>
-            <tbody>
-                {#each filteredEvents as event, i}
-               <tr class={i % 2 === 0 ? 'bg-gray-100' : 'bg-white hover:bg-gray-200'}>
+    <div>
+        <!-- Existing table code -->
+        <div class="w-full">
+            <table class="w-full table-auto">
+                <thead>
+                    <tr>
+                        <th class="bg-white bg-opacity-30 text-black py-2 px-4 text-left">Event Name</th>
+                        <th class="bg-white bg-opacity-30 text-black py-2 px-4 text-left">Description</th>
+                        <th class="bg-white bg-opacity-30 text-black py-2 px-4 text-left">Date</th>
+                        <th class="bg-white bg-opacity-30 text-black py-2 px-4 text-left">Location</th>
+                        <th class="bg-white bg-opacity-30 text-black py-2 px-4 text-left">Speaker</th>
+                        <th class="bg-white bg-opacity-30 text-black py-2 px-4 text-left">View</th>
+                        <th class="bg-white bg-opacity-30 text-black py-2 px-4 text-left">Edit</th>
+                        <th class="bg-white bg-opacity-30 text-black py-2 px-4 text-left">Delete</th>
+                        <th class="bg-white bg-opacity-30 text-black py-2 px-4 text-left">Generate QR Code</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {#each filteredEvents as event, i}
+                    <tr class={i % 2 === 0 ? 'bg-gray-100' : 'bg-white hover:bg-gray-200'}>
                         <td class="py-2 px-4">{event.name}</td>
                         <td class="py-2 px-4">{event.description}</td>
                         <td class="py-2 px-4">{event.date}</td>
@@ -337,18 +365,40 @@ const updateEvent = async () => {
                         <td class="py-2 px-4">
                             <button class="bg-blue-500 text-white py-1 px-4 rounded-md hover:bg-blue-600" on:click={() => viewEventDetails(event.id)}>View</button>
                         </td>
-                        <td>
-                            <button class="bg-yellow-500 text-white py-1 px-4 rounded-md hover:bg-yellow-600" 
-                            on:click={() => editEvent(event)}>Edit</button>
-
+                        <td class="py-2 px-4">
+                            <button class="bg-yellow-500 text-white py-1 px-4 rounded-md hover:bg-yellow-600" on:click={() => editEvent(event)}>Edit</button>
                         </td>
                         <td class="py-2 px-4">
                             <button class="bg-red-500 text-white py-1 px-4 rounded-md hover:bg-red-600" on:click={() => deleteEvent(event.id)}>Delete</button>
                         </td>
+                        <td class="py-2 px-4">
+                            <button 
+                                class="bg-green-500 text-white py-1 px-4 rounded-md hover:bg-green-600" 
+                                 on:click={() => generateQRCode(event.id.toString())}>
+                                Generate QR Code
+                            </button>
+                        </td>
                     </tr>
-                {/each}
-            </tbody>
-        </table>
+                    {/each}
+                </tbody>
+            </table>
+        </div>
+    
+        <!-- Modal -->
+        {#if qrModalVisible}
+        <div class="fixed inset-0 bg-gray-800 bg-opacity-50 flex justify-center items-center z-50">
+            <div class="bg-white p-6 rounded shadow-lg w-96">
+                <h2 class="text-xl font-bold mb-4">{qrEventName} - QR Code</h2>
+                <img src={qrImageSrc} alt="QR Code" class="w-full h-auto mb-4" />
+                <button
+                    class="bg-red-500 text-white py-2 px-4 rounded-md hover:bg-red-600 w-full"
+                    on:click={closeModal}
+                >
+                    Close
+                </button>
+            </div>
+        </div>
+        {/if}
     </div>
 </div>
 
@@ -370,8 +420,7 @@ const updateEvent = async () => {
                         id="event-title"
                         bind:value={eventForm.title} 
                         class="w-full px-4 py-2 border border-gray-300 rounded-md"
-                        placeholder="Enter event title"
-                    />
+                        placeholder="Enter event title"/>
                 </div>
                 
                 <div>
@@ -391,8 +440,7 @@ const updateEvent = async () => {
                         id="event-location"
                         bind:value={eventForm.location} 
                         class="w-full px-4 py-2 border border-gray-300 rounded-md"
-                        placeholder="Enter event location"
-                    />
+                        placeholder="Enter event location"/>
                 </div>
 
                 <div>
@@ -402,8 +450,7 @@ const updateEvent = async () => {
                         id="event-speaker"
                         bind:value={eventForm.speaker} 
                         class="w-full px-4 py-2 border border-gray-300 rounded-md"
-                        placeholder="Enter speaker name"
-                    />
+                        placeholder="Enter speaker name"/>
                 </div>
             
                 <div>
@@ -412,8 +459,7 @@ const updateEvent = async () => {
                         type="datetime-local"
                         id="start-time"
                         bind:value={eventForm.startTime}
-                        class="w-full px-4 py-2 border border-gray-300 rounded-md"
-                    />
+                        class="w-full px-4 py-2 border border-gray-300 rounded-md"/>
                 </div>
             
                 <div>
@@ -422,18 +468,16 @@ const updateEvent = async () => {
                         type="datetime-local"
                         id="end-time"
                         bind:value={eventForm.endTime}
-                        class="w-full px-4 py-2 border border-gray-300 rounded-md"
-                    />
+                        class="w-full px-4 py-2 border border-gray-300 rounded-md"/>
                 </div>
-            
-                <div class="flex justify-between">
+
+                <div class="flex justify-between mt-6">
                     <button 
                         type="button" 
                         on:click={cancelEventCreation}
                         class="bg-gray-500 text-white py-2 px-6 rounded-md hover:bg-gray-600">
                         Cancel
                     </button>
-            
                     <button 
                         type="button" 
                         on:click={createEvent}
@@ -445,6 +489,7 @@ const updateEvent = async () => {
         </div>
     </div>
 {/if}
+
 
 
 {#if editEventFormVisible}
@@ -466,8 +511,7 @@ const updateEvent = async () => {
                         bind:value={eventForm.title} 
                         class="w-full px-4 py-2 border border-gray-300 rounded-md"
                         placeholder="Enter event title"
-                        required
-                    />
+                        required/>
                 </div>
 
                 <!-- Event Description -->
@@ -491,8 +535,7 @@ const updateEvent = async () => {
                         bind:value={eventForm.location} 
                         class="w-full px-4 py-2 border border-gray-300 rounded-md"
                         placeholder="Enter event location"
-                        required
-                    />
+                        required/>
                 </div>
 
                 <!-- Speaker -->
@@ -504,8 +547,7 @@ const updateEvent = async () => {
                         bind:value={eventForm.speaker} 
                         class="w-full px-4 py-2 border border-gray-300 rounded-md"
                         placeholder="Enter speaker's name"
-                        required
-                    />
+                        required/>
                 </div>
 
                 <!-- Start Time -->
@@ -516,8 +558,7 @@ const updateEvent = async () => {
                         id="start-time"
                         bind:value={eventForm.startTime}
                         class="w-full px-4 py-2 border border-gray-300 rounded-md"
-                        required
-                    />
+                        required/>
                 </div>
 
                 <!-- End Time -->
@@ -528,8 +569,7 @@ const updateEvent = async () => {
                         id="end-time"
                         bind:value={eventForm.endTime}
                         class="w-full px-4 py-2 border border-gray-300 rounded-md"
-                        required
-                    />
+                        required/>
                 </div>
 
                 <!-- Form Actions -->
@@ -540,7 +580,6 @@ const updateEvent = async () => {
                         class="bg-gray-500 text-white py-2 px-6 rounded-md hover:bg-gray-600">
                         Cancel
                     </button>
-
                     <button 
                         type="button" 
                         on:click={updateEvent}

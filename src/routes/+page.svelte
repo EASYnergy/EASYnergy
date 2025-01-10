@@ -9,14 +9,14 @@
 
   // Function to handle login
   async function handleLogin() {
-  if (email.trim() !== '' && password.trim() !== '') {
+  if (username.trim() !== '' && password.trim() !== '') {
     try {
-      const response = await fetch('http://localhost/EASYnergy/login.php', {
+      const response = await fetch('http://localhost:5000/api/user/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ username, password }),
       });
 
       console.log('Response:', response);
@@ -36,9 +36,10 @@
       alert('An error occurred. Please try again.');
     }
   } else {
-    alert('Please fill in both email and password.');
+    alert('Please fill in both username and password.');
   }
 }
+
 
 
   // Function to handle signup
@@ -47,7 +48,7 @@
     try {
       console.log('Sending signup data:', { username, email, password, role });
 
-      const response = await fetch('http://localhost/EASYnergy/signup.php', {
+      const response = await fetch('http://localhost:5000/api/user/signup', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -151,12 +152,12 @@
         <h2 class="text-2xl font-bold text-white text-center mb-6">Login</h2>
         <form on:submit|preventDefault={handleLogin}>
           <div class="mb-4">
-            <label for="email" class="block text-sm font-medium text-white">Email</label>
+            <label for="username" class="block text-sm font-medium text-white">Username</label>
             <input
-              type="email"
-              id="email"
-              bind:value={email}
-              placeholder="Enter your email"
+              type="text" 
+              id="username"
+              bind:value={username}
+              placeholder="Enter your username"
               class="mt-1 block w-full px-4 py-2 bg-transparent border-2 text-black rounded-lg focus:ring-2 focus:ring-orange-400 focus:outline-none"
             />
           </div>
