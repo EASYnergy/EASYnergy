@@ -1,6 +1,10 @@
 # PUT THE FILES INSIDE THE FOLDER OF "PHP" TO YOUR LOCAL XAMPP 'HTDOCS'
   Create a folder named "EASYnergy" and put the files inside that
 
+
+# To integrate both Sites, run the "app.py" in the bash terminal first by doing cd src, cd lib and "Python app.py" 
+## Note: run the this site first before opening the attendance tracker website
+
 # sv
 
 Everything you need to build a Svelte project, powered by [`sv`](https://github.com/sveltejs/cli).
