@@ -104,7 +104,7 @@
               id="username"
               bind:value={username}
               placeholder="Enter your username"
-              class="mt-1 block w-full px-4 py-2 bg-transparent border-2 text-black rounded-lg focus:ring-2 focus:ring-orange-400 focus:outline-none"
+              class="mt-1 block w-full px-4 py-2 bg-transparent border-2 text-white rounded-lg focus:ring-2 focus:ring-orange-400 focus:outline-none"
             />
           </div>
           <div class="mb-4">
@@ -114,7 +114,7 @@
               id="email"
               bind:value={email}
               placeholder="Enter your email"
-              class="mt-1 block w-full px-4 py-2 bg-transparent border-2 text-black rounded-lg focus:ring-2 focus:ring-orange-400 focus:outline-none"
+              class="mt-1 block w-full px-4 py-2 bg-transparent border-2 text-white rounded-lg focus:ring-2 focus:ring-orange-400 focus:outline-none"
             />
           </div>
           <div class="mb-4">
@@ -124,7 +124,7 @@
               id="password"
               bind:value={password}
               placeholder="Enter your password"
-              class="mt-1 block w-full px-4 py-2 bg-transparent border-2 text-black rounded-lg focus:ring-2 focus:ring-orange-400 focus:outline-none"
+              class="mt-1 block w-full px-4 py-2 bg-transparent border-2 text-white rounded-lg focus:ring-2 focus:ring-orange-400 focus:outline-none"
             />
           </div>
           <div class="mb-6">
@@ -132,7 +132,7 @@
             <select
               id="role"
               bind:value={role}
-              class="mt-1 block w-full px-4 py-2 bg-transparent border-2 text-black rounded-lg focus:ring-2 focus:ring-orange-400 focus:outline-none">
+              class="mt-1 block w-full px-4 py-2 bg-transparent border-2 text-white rounded-lg focus:ring-2 focus:ring-orange-400 focus:outline-none">
               <option value="">Select your role</option>
               <option value="admin">Admin</option>
             </select>
@@ -158,7 +158,7 @@
               id="username"
               bind:value={username}
               placeholder="Enter your username"
-              class="mt-1 block w-full px-4 py-2 bg-transparent border-2 text-black rounded-lg focus:ring-2 focus:ring-orange-400 focus:outline-none"
+              class="mt-1 block w-full px-4 py-2 bg-transparent border-2 text-white rounded-lg focus:ring-2 focus:ring-orange-400 focus:outline-none"
             />
           </div>
           <div class="mb-6">
@@ -168,7 +168,7 @@
               id="password"
               bind:value={password}
               placeholder="Enter your password"
-              class="mt-1 block w-full px-4 py-2 bg-transparent border-2 text-black rounded-lg focus:ring-2 focus:ring-orange-400 focus:outline-none"
+              class="mt-1 block w-full px-4 py-2 bg-transparent border-2 text-white rounded-lg focus:ring-2 focus:ring-orange-400 focus:outline-none"
             />
           </div>
           <button

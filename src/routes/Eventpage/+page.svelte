@@ -6,6 +6,7 @@
     let eventId: number;
     let event: any = null;
     let registeredStudents: any[] = [];
+    let attendanceRecords: any[] = [];
     let loading = true;
     let error: string | null = null; // Explicitly typed as string or null
 
@@ -22,6 +23,12 @@
         if (!registrationRes.ok) throw new Error('Failed to fetch registered students');
         const registrationData = await registrationRes.json();
         registeredStudents = registrationData.registrations; // Access the `registrations` array
+
+         // Fetch attendance records
+        const attendanceRes = await fetch(`http://localhost:5000/api/event_attendance/${eventId}`);
+        if (!attendanceRes.ok) throw new Error('Failed to fetch attendance records');
+        const attendanceData = await attendanceRes.json();
+        attendanceRecords = attendanceData.attendance; // Access the `attendance` array
 
         loading = false;
     } catch (err: any) {
@@ -77,7 +84,7 @@
             </div>
 
             <!-- Event Info -->
-            <div class="grid grid-cols-3 gap-2 mb-6 p-3">
+            <div class="grid grid-cols-5 gap-2 mb-6 p-3">
                 <div class="flex flex-col">
                     <span class="font-medium mb-1">Location</span>
                     <span class="text-gray-600">{event.location}</span>
@@ -87,52 +94,110 @@
                     <span class="text-gray-600">{event.event_date}</span>
                 </div>
                 <div class="flex flex-col">
-                    <span class="font-medium mb-1">Time</span>
-                    <span class="text-gray-600">{event.start_time} - {event.end_time}</span>
+                    <span class="font-medium mb-1">Start Time</span>
+                    <span class="text-gray-600">{event.start_time}</span>
+                </div>
+                <div class="flex flex-col">
+                    <span class="font-medium mb-1">End Time</span>
+                    <span class="text-gray-600">{event.end_time}</span>
+                </div>
+                <div class="flex flex-col">
+                    <span class="font-medium mb-1">Speaker</span>
+                    <span class="text-gray-600">{event.speaker}</span>
                 </div>
                 
             </div>
 
             <!-- Parent Container with Flexbox -->
-                <div class="flex gap-4 p-3">
-                    <!-- Attendance Info -->
-                    <div class="bg-gray-100 p-4 rounded-md flex items-center justify-between w-1/2">
-                        <h2 class="text-lg font-semibold text-gray-800">Attendance of Students</h2>
-                    </div>
+            <div class="flex gap-4 p-3">
 
-                    <!-- Registered Students Table -->
+                <!-- Attendance Info -->
+                            <div class="bg-gray-100 p-3 rounded-md w-1/2">
+                                <div class="flex items-center justify-between">
+                                    <h2 class="text-lg font-semibold text-gray-800">Attendance of Students</h2>
+                                    <p class="text-2xl font-bold text-orange-400">{attendanceRecords.length}</p>
+                                </div>
+
+                                <div class="overflow-x-auto mt-4">
+                                    <table class="table-auto w-full border-collapse border border-gray-300 text-left">
+                                        <thead>
+                                            <tr class="bg-gray-200 text-gray-800">
+                                                <th class="border border-gray-300 px-2 py-2">Student ID</th>
+                                                <th class="border border-gray-300 px-2 py-2">Full Name</th>
+                                                <th class="border border-gray-300 px-2 py-2">Year and Block</th>
+                                                <th class="border border-gray-300 px-2 py-2">Department</th>
+                                                <th class="border border-gray-300 px-2 py-2">Check-in</th>
+                                                <th class="border border-gray-300 px-2 py-2">Check-out</th>
+                                                <th class="border border-gray-300 px-2 py-2">Status</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {#if attendanceRecords.length > 0}
+                                                {#each attendanceRecords as record}
+                                                    <tr class="hover:bg-gray-100">
+                                                        <td class="border border-gray-300 px-4 py-2">{record.student_id}</td>
+                                                        <td class="border border-gray-300 px-4 py-2">{record.fullname}</td>
+                                                        <td class="border border-gray-300 px-4 py-2">{record.year_and_block}</td>
+                                                        <td class="border border-gray-300 px-4 py-2">{record.department}</td>
+                                                        <td class="border border-gray-300 px-4 py-2">{record.check_in || 'N/A'}</td>
+                                                        <td class="border border-gray-300 px-4 py-2">{record.check_out || 'N/A'}</td>
+                                                        <td class="border border-gray-300 px-4 py-2">{record.status}</td>
+                                                    </tr>
+                                                {/each}
+                                            {:else}
+                                                <tr>
+                                                    <td colspan="7" class="border border-gray-300 px-4 py-2 text-center text-gray-500">
+                                                        No attendance records found.
+                                                    </td>
+                                                </tr>
+                                            {/if}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+            
+                <!-- Registered Students Table -->
                     <div class="bg-gray-100 p-3 rounded-md w-1/2">
-                        <!-- Registered Students Header -->
-                        <h2 class="text-lg font-semibold text-gray-800">Registered Students</h2>
-                        <p class="text-2xl font-bold text-orange-400">{registeredStudents.length}</p>
+                        <div class="flex items-center justify-between">
+                            <h2 class="text-lg font-semibold text-gray-800">Registered Students</h2>
+                            <p class="text-2xl font-bold text-orange-400">{registeredStudents.length}</p>
+                        </div>
 
-                        <!-- Registered Students Table -->
                         <div class="overflow-x-auto mt-4">
-                            <table class="table-auto w-full border-collapse border border-gray-300">
+                            <table class="table-auto w-full border-collapse border border-gray-300 text-left">
                                 <thead>
-                                    <tr class="bg-gray-100">
-                                        <th class="border border-gray-300 px-4 py-2">Student ID</th>
-                                        <th class="border border-gray-300 px-4 py-2">Full Name</th>
-                                        <th class="border border-gray-300 px-4 py-2">Year and Block</th>
-                                        <th class="border border-gray-300 px-4 py-2">Department</th>
-                                        <th class="border border-gray-300 px-4 py-2">Registration Date</th>
+                                    <tr class="bg-gray-200 text-gray-800">
+                                        <th class="border border-gray-300 px-3 py-2">Student ID</th>
+                                        <th class="border border-gray-300 px-3 py-2">Full Name</th>
+                                        <th class="border border-gray-300 px-3 py-2">Year and Block</th>
+                                        <th class="border border-gray-300 px-3 py-2">Department</th>
+                                        <th class="border border-gray-300 px-3 py-2">Registration Date</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {#each registeredStudents as student}
+                                    {#if registeredStudents.length > 0}
+                                        {#each registeredStudents as student}
+                                            <tr class="hover:bg-gray-100">
+                                                <td class="border border-gray-300 px-4 py-2">{student.student_id}</td>
+                                                <td class="border border-gray-300 px-4 py-2">{student.fullname}</td>
+                                                <td class="border border-gray-300 px-4 py-2">{student.year_and_block}</td>
+                                                <td class="border border-gray-300 px-4 py-2">{student.department}</td>
+                                                <td class="border border-gray-300 px-4 py-2">{student.registration_date || 'N/A'}</td>
+                                            </tr>
+                                        {/each}
+                                    {:else}
                                         <tr>
-                                            <td class="border border-gray-300 px-4 py-2">{student.student_id}</td>
-                                            <td class="border border-gray-300 px-4 py-2">{student.fullname}</td>
-                                            <td class="border border-gray-300 px-4 py-2">{student.year_and_block}</td>
-                                            <td class="border border-gray-300 px-4 py-2">{student.department}</td>
-                                            <td class="border border-gray-300 px-4 py-2">{student.registration_date}</td>
+                                            <td colspan="5" class="border border-gray-300 px-4 py-2 text-center text-gray-500">
+                                                No registered students found.
+                                            </td>
                                         </tr>
-                                    {/each}
+                                    {/if}
                                 </tbody>
                             </table>
                         </div>
                     </div>
-                </div>
+            </div>   
         </div>
     {/if}
 {/if}

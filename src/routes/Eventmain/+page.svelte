@@ -62,20 +62,27 @@
         goto(`/Eventpage?id=${eventId}`);
     };
 
+    
+
     const deleteEvent = async (eventId: number) => {
     try {
         const response = await fetch(`http://localhost:5000/api/events/${eventId}`, {
             method: 'DELETE',
         });
+
         if (!response.ok) {
-            const errorResponse = await response.json();
-            throw new Error(errorResponse.error || `Failed to delete event (Status: ${response.status})`);
+            // Log the error response for debugging
+            const errorDetails = await response.json();
+            console.error('Server responded with:', errorDetails);
+            throw new Error(`Failed to delete event (Status: ${response.status}): ${errorDetails.error || 'Unknown error'}`);
         }
+
         alert('Event deleted successfully!');
-        fetchEvents();
-    } catch (error: unknown) {
+        fetchEvents(); // Refresh the list of events
+    } catch (error) {
+        // Comprehensive error handling
         if (error instanceof Error) {
-            console.error(error.message);
+            console.error('Error deleting event:', error.message);
             alert(`Error deleting event: ${error.message}`);
         } else {
             console.error('An unknown error occurred:', error);
@@ -83,6 +90,7 @@
         }
     }
 };
+
 
 
     let eventForm: { 
@@ -194,20 +202,20 @@ const updateEvent = async () => {
                 qr_code: qrCodeURL,
             };
 
-            const response = await fetch(`http://localhost:5000/api/events?event_id=${eventForm.id}`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(updatedEvent),
-            });
+            const response = await fetch(`http://localhost:5000/api/events`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(updatedEvent),
+        });
 
-            if (response.ok) {
-                alert('Event updated successfully!');
-                fetchEvents();
-                cancelEventEdit();
-            } else {
-                const errorResponse = await response.json();
-                throw new Error(errorResponse.error || 'Failed to update event');
-            }
+
+        if (!response.ok) {
+         const errorText = await response.text();
+            console.error('Error response from server:', errorText);
+            throw new Error('Failed to update event. Check server logs for details.');
+        }
+            const result = await response.json();
+            alert('Event updated successfully!');
         } catch (error) {
             console.error(error);
             alert('Error updating event. Please try again later.');

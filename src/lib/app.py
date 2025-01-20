@@ -1,4 +1,5 @@
 import qrcode
+import os
 import io
 import base64
 from flask import Flask, request, jsonify
@@ -45,8 +46,8 @@ class Attendance(db.Model):
     fullName = db.Column(db.String(256), nullable=False)
     year_and_block = db.Column(db.String(50), nullable=False)
     department = db.Column(db.String(256), nullable=False)
-    check_in = db.Column(db.String(250), nullable=True)
-    check_out = db.Column(db.String(256), nullable=True)
+    check_in = db.Column(db.DateTime, nullable=True)  
+    check_out = db.Column(db.DateTime, nullable=True)  
     status = db.Column(db.String(20), nullable=False)
     
 
@@ -136,6 +137,7 @@ def get_all_events():
     ]
     return jsonify(event_list), 200
 
+#Event Creation
 @app.route('/api/events', methods=['POST'])
 def create_event():
     data = request.json
@@ -173,6 +175,51 @@ def create_event():
         db.session.rollback()
         return jsonify({"error": "An error occurred during event creation.", "details": str(e)}), 500
 
+#Event Updating
+@app.route('/api/events', methods=['PUT'])
+def update_event():
+    data = request.json
+    if not data or 'event_id' not in data:
+        return jsonify({"error": "Invalid request data"}), 400
+
+    event = Event.query.get(data['event_id'])
+    if not event:
+        return jsonify({"error": "Event not found"}), 404
+
+    # Update event details
+    event.event_name = data.get('event_name', event.event_name)
+    event.event_description = data.get('event_description', event.event_description)
+    event.location = data.get('location', event.location)
+    event.speaker = data.get('speaker', event.speaker)
+    event.event_date = data.get('event_date', event.event_date)
+    event.start_time = data.get('start_time', event.start_time)
+    event.end_time = data.get('end_time', event.end_time)
+    event.qr_code = data.get('qr_code', event.qr_code)
+
+    try:
+        db.session.commit()
+        return jsonify({"message": "Event updated successfully"}), 200
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"error": "Failed to update event", "details": str(e)}), 500
+
+#Delete Event
+
+@app.route('/api/events/<int:event_id>', methods=['DELETE'])
+def delete_event(event_id):
+    try:
+        # Use ORM to fetch and delete the event
+        event = Event.query.get(event_id)
+        if event:
+            db.session.delete(event)
+            db.session.commit()
+            return jsonify({"message": "Event deleted successfully"}), 200
+        
+        # If event is not found, return 404
+        return jsonify({"error": "Event not found"}), 404
+    except Exception as e:
+        # Log the error and return a 500 response
+        return jsonify({"error": "An error occurred while deleting the event", "details": str(e)}), 500
 
 # Routes for Login and Signup
 @app.route('/api/user/signup', methods=['POST'])
@@ -373,24 +420,44 @@ def register_participant():
         }), 500
 
 
-#Fetching Registered Students
+# Fetching Registered Students
 @app.route('/api/event_registration/<int:event_id>', methods=['GET'])
 def get_event_registration(event_id):
     registrations = EventRegistration.query.filter_by(event_id=event_id).all()
-    if not registrations:
-        return jsonify({"error": "No registrations found for this event"}), 404
-
+    
     result = []
     for reg in registrations:
-       result.append({
+        result.append({
             "student_id": reg.student_id,
             "fullname": reg.fullname,
             "year_and_block": reg.year_and_block,
             "department": reg.department,
             "registration_date": reg.registration_date.strftime('%Y-%m-%d %H:%M:%S')
         })
-
+    
+    # Return an empty list if no registrations exist
     return jsonify({"event_id": event_id, "registrations": result}), 200
+
+# Fetching Attendance for an Event
+@app.route('/api/event_attendance/<int:event_id>', methods=['GET'])
+def get_event_attendance(event_id):
+    attendance_records = Attendance.query.filter_by(event_id=event_id).all()
+    
+    result = []
+    for record in attendance_records:
+        result.append({
+            "student_id": record.student_id,
+            "fullname": record.fullName,
+            "year_and_block": record.year_and_block,
+            "department": record.department,
+            "check_in": record.check_in.strftime('%Y-%m-%d %H:%M:%S') if record.check_in else None,
+            "check_out": record.check_out.strftime('%Y-%m-%d %H:%M:%S') if record.check_out else None,
+            "status": record.status
+        })
+    
+    # Return an empty list if no attendance records exist
+    return jsonify({"event_id": event_id, "attendance": result}), 200
+
 
 
 # ATTENDANCE
@@ -462,7 +529,6 @@ def generate_qr_code(event_id):
         "qr_code": qr_code_base64,
         "event_name": event.event_name
     })
-
 
 if __name__ == '__main__':
     with app.app_context():

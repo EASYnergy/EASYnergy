@@ -180,8 +180,6 @@
     </div> -->
     <!-- User Info -->
     <div class="user-info">
-        <p class="text-xl font-semibold">Username: {$username}</p>
-        <p class="text-sm">Email: {$email}</p>
     </div>
 
 
