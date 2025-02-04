@@ -33,7 +33,9 @@
 		"vite": "^5.0.3"
 	},
 	"dependencies": {
-		"qrcode": "^1.5.4"
+		"jsqr": "^1.4.0",
+		"qrcode": "^1.5.4",
+		"svelte-routing": "^2.13.0"
 	},
 	"description": "Everything you need to build a Svelte project, powered by [`sv`](https://github.com/sveltejs/cli).",
 	"main": "eslint.config.js",

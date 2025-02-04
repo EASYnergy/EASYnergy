@@ -19,26 +19,25 @@
 
   // Fetch Report Data from Backend
   async function fetchReportData() {
-  try {
-    const response = await fetch('http://localhost:5000/api/events');
-    if (!response.ok) {
-      throw new Error(`Error: ${response.status}`);
+    try {
+      const response = await fetch('http://localhost:5000/api/events');
+      if (!response.ok) {
+        throw new Error(`Error: ${response.status}`);
+      }
+
+      const data = await response.json();
+
+     // Update counters
+     totalEvents = data.total_events || 0;
+      scheduledEvents = data.scheduled_events || 0;
+      completedEvents = data.completed_events || 0;
+
+      // Update table data
+      reportData = data.events || [];
+    } catch (error) {
+      console.error('Error fetching report data:', error);
     }
-
-    const data = await response.json();
-
-    // Update counters
-    totalEvents = data.total_events || 0; // Ensure it handles null or undefined
-    scheduledEvents = data.scheduled_events || 0;
-    completedEvents = data.completed_events || 0;
-
-    // Update table data
-    reportData = data.events || [];
-  } catch (error) {
-    console.error('Error fetching report data:', error);
   }
-}
-
 
   // Fetch data on component mount
   fetchReportData();
@@ -66,7 +65,7 @@
           <p class="mt-2 text-2xl font-bold text-blue-500">{totalEvents}</p>
       </div>
       <div class="p-4 bg-white shadow rounded-lg">
-          <h2 class="text-lg font-semibold text-gray-700">Scheduled Events</h2>
+          <h2 class="text-lg font-semibold text-gray-700">Upcoming Events</h2>
           <p class="mt-2 text-2xl font-bold text-green-500">{scheduledEvents}</p>
       </div>
       <div class="p-4 bg-white shadow rounded-lg">
@@ -81,6 +80,7 @@
           <thead class="bg-blue-500">
               <tr>
                   <th class="py-3 px-6 text-left text-white font-semibold">Event</th>
+                  <th class="py-3 px-6 text-left text-white font-semibold">Type</th>
                   <th class="py-3 px-6 text-left text-white font-semibold">Location</th>
                   <th class="py-3 px-6 text-left text-white font-semibold">Event Date</th>
                   <th class="py-3 px-6 text-left text-white font-semibold">Status</th>
@@ -102,8 +102,7 @@
                 <td class="py-3 px-6">
                     <button 
                         class="bg-orange-500 text-white py-1 px-4 rounded-md hover:bg-orange-600 transition-all"
-                        on:click={() => generateReport(event.id)}
-                    >
+                        on:click={() => generateReport(event.id)}>
                         Generate Report
                     </button>
                 </td>

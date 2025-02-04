@@ -29,12 +29,13 @@ class Event(db.Model):
     user_id = db.Column(db.Integer)
     event_name = db.Column(db.String(255))
     event_description = db.Column(db.Text)
+    type = db.Column(db.String(255), nullable=True)  # Added 'type' column
+    slot = db.Column(db.Integer, nullable=True)  # Added 'size' column
     speaker = db.Column(db.String(255))
     location = db.Column(db.String(255))
     event_date = db.Column(db.Date)
     start_time = db.Column(db.Time)
     end_time = db.Column(db.Time)
-    qr_code = db.Column(db.String(255))
     created_at = db.Column(db.DateTime)
     updated_at = db.Column(db.DateTime)
 
@@ -43,7 +44,8 @@ class Attendance(db.Model):
     attendance_ID = db.Column(db.Integer, primary_key=True, autoincrement=True)
     event_id = db.Column(db.Integer, db.ForeignKey('event.event_id'), nullable=False)
     student_id = db.Column(db.Integer, nullable=False)
-    fullName = db.Column(db.String(256), nullable=False)
+    firstName = db.Column(db.String(256))
+    lastName = db.Column(db.String(256))
     year_and_block = db.Column(db.String(50), nullable=False)
     department = db.Column(db.String(256), nullable=False)
     check_in = db.Column(db.DateTime, nullable=True)  
@@ -76,7 +78,8 @@ class EventRegistration(db.Model):
     registration_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     event_id = db.Column(db.Integer, nullable=False)  # Foreign key to the Events table
     student_id = db.Column(db.Integer, nullable=False)
-    fullname = db.Column(db.Text, nullable=False)
+    firstName = db.Column(db.String(256))
+    lastName = db.Column(db.String(256))
     year_and_block = db.Column(db.String(256), nullable=False)
     department = db.Column(db.String(256), nullable=False)
     registration_date = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
@@ -141,7 +144,7 @@ def get_all_events():
 @app.route('/api/events', methods=['POST'])
 def create_event():
     data = request.json
-    required_fields = ['event_name', 'event_description', 'location', 'event_date', 'start_time', 'end_time']
+    required_fields = ['event_name', 'event_description', 'location', 'event_date', 'start_time', 'end_time', 'type', 'slot']
 
     # Check for required fields
     for field in required_fields:
@@ -152,8 +155,9 @@ def create_event():
         event_date = date.fromisoformat(data['event_date'])
         start_time = data['start_time']
         end_time = data['end_time']
+        slot = int(data['slot']) if 'slot' in data else 0  # Ensure slot is an integer
     except ValueError as ve:
-        return jsonify({"error": f"Invalid date/time format: {ve}"}), 400
+        return jsonify({"error": f"Invalid date/time/slot format: {ve}"}), 400
 
     # Create the event in the database
     new_event = Event(
@@ -163,6 +167,8 @@ def create_event():
         event_date=event_date,
         start_time=start_time,
         end_time=end_time,
+        type=data.get('type', ''),  # Include type
+        slot=slot,                 # Include slot
         speaker=data.get('speaker', '')
     )
 
@@ -194,7 +200,8 @@ def update_event():
     event.event_date = data.get('event_date', event.event_date)
     event.start_time = data.get('start_time', event.start_time)
     event.end_time = data.get('end_time', event.end_time)
-    event.qr_code = data.get('qr_code', event.qr_code)
+    event.type = data.get('type', event.type)  # Update type
+    event.slot = int(data.get('slot', event.slot))  # Update slot, ensure integer
 
     try:
         db.session.commit()
@@ -202,6 +209,7 @@ def update_event():
     except Exception as e:
         db.session.rollback()
         return jsonify({"error": "Failed to update event", "details": str(e)}), 500
+
 
 #Delete Event
 
@@ -222,59 +230,6 @@ def delete_event(event_id):
         return jsonify({"error": "An error occurred while deleting the event", "details": str(e)}), 500
 
 # Routes for Login and Signup
-@app.route('/api/user/signup', methods=['POST'])
-def user_signup():
-    data = request.json
-    required_fields = ['username', 'password', 'email', 'role']
-    for field in required_fields:
-        if field not in data:
-            return jsonify({"error": f"'{field}' is required"}), 400
-
-    existing_user = User.query.filter(
-        (User.username == data['username']) | (User.email == data['email'])
-    ).first()
-    if existing_user:
-        return jsonify({"error": "Username or Email is already registered"}), 400
-
-    new_user = User(
-        username=data['username'],
-        password=generate_password_hash(data['password']),
-        email=data['email'],
-        role=data['role']
-    )
-
-    try:
-        db.session.add(new_user)
-        db.session.commit()
-        return jsonify({"message": "User registered successfully"}), 201
-    except Exception as e:
-        db.session.rollback()
-        return jsonify({"error": "An error occurred during signup.", "details": str(e)}), 500
-
-@app.route('/api/user/login', methods=['POST'])
-def user_login():
-    data = request.json
-    required_fields = ['username', 'password']
-    for field in required_fields:
-        if field not in data:
-            return jsonify({"error": f"'{field}' is required"}), 400
-
-    user = User.query.filter_by(username=data['username']).first()
-    if not user or not check_password_hash(user.password, data['password']):
-        return jsonify({"error": "Invalid Email or Password"}), 401
-
-    return jsonify({
-        "message": "Login successful",
-        "user": {
-            "user_id": user.user_id,
-            "username": user.username,
-            "email": user.email,
-            "role": user.role
-        }
-    }), 200
-
-
-# Routes for Participants (Attendance Tracking System)
 @app.route('/api/participant/signup', methods=['POST'])
 def participant_signup():
     data = request.json
@@ -302,10 +257,25 @@ def participant_signup():
         department=data['department']
     )
 
+    # Generate QR code
+    qr_data = f"{data['student_Id']},{data['firstName']},{data['lastName']},{data['department']}"
+    qr_img = qrcode.make(qr_data)
+
+    # Save QR code to a BytesIO object
+    img_byte_arr = io.BytesIO()
+    qr_img.save(img_byte_arr, format='PNG')
+    img_byte_arr.seek(0)
+    
+    # Encode the image to base64
+    qr_code_base64 = base64.b64encode(img_byte_arr.getvalue()).decode('utf-8')
+
+    # Assign the QR code to the new participant and save to database
+    new_participant.qr_code = qr_code_base64
+
     try:
         db.session.add(new_participant)
         db.session.commit()
-        return jsonify({"message": "Participant registered successfully"}), 201
+        return jsonify({"message": "Participant registered successfully", "qr_code": qr_code_base64}), 201
     except Exception as e:
         db.session.rollback()
         return jsonify({"error": "An error occurred during signup.", "details": str(e)}), 500
@@ -335,6 +305,24 @@ def participant_login():
             "email": participant.email,
             "department": participant.department
         }
+    }), 200
+
+# Example route to retrieve participant data including QR code
+@app.route('/api/participant/<student_id>', methods=['GET'])
+def get_participant(student_id):
+    print(f"Received request for student ID: {student_id}")  # Debugging output
+    participant = Participant.query.filter_by(student_Id=student_id).first()
+    
+    if not participant:
+        return jsonify({"error": "Participant not found"}), 404
+    
+    return jsonify({
+        "student_Id": participant.student_Id,
+        "firstName": participant.firstName,
+        "lastName": participant.lastName,
+        "email": participant.email,
+        "department": participant.department,
+        "qr_code": participant.qr_code  # Return the QR code as well
     }), 200
 
   #Displaying of Name and User that is logged in currently
@@ -429,14 +417,17 @@ def get_event_registration(event_id):
     for reg in registrations:
         result.append({
             "student_id": reg.student_id,
-            "fullname": reg.fullname,
+            "firstName": reg.firstName,
+            "lastName": reg.lastName,
             "year_and_block": reg.year_and_block,
             "department": reg.department,
-            "registration_date": reg.registration_date.strftime('%Y-%m-%d %H:%M:%S')
+            "registration_date": reg.registration_date.strftime('%Y-%m-%d %H:%M:%S'),
+            "registration_status": reg.registration_status
         })
     
     # Return an empty list if no registrations exist
     return jsonify({"event_id": event_id, "registrations": result}), 200
+
 
 # Fetching Attendance for an Event
 @app.route('/api/event_attendance/<int:event_id>', methods=['GET'])
@@ -447,7 +438,8 @@ def get_event_attendance(event_id):
     for record in attendance_records:
         result.append({
             "student_id": record.student_id,
-            "fullname": record.fullName,
+            "firstName": record.firstName,
+            "lastName": record.lastName,
             "year_and_block": record.year_and_block,
             "department": record.department,
             "check_in": record.check_in.strftime('%Y-%m-%d %H:%M:%S') if record.check_in else None,
@@ -457,7 +449,6 @@ def get_event_attendance(event_id):
     
     # Return an empty list if no attendance records exist
     return jsonify({"event_id": event_id, "attendance": result}), 200
-
 
 
 # ATTENDANCE
@@ -529,6 +520,42 @@ def generate_qr_code(event_id):
         "qr_code": qr_code_base64,
         "event_name": event.event_name
     })
+
+
+#report generation event fetching
+@app.route('/api/events', methods=['GET'])
+def get_events():
+    current_date = datetime.now().date()
+    all_events = Event.query.all()
+    
+    events_list = []
+    scheduled_events = 0
+    completed_events = 0
+
+    for event in all_events:
+        event_data = {
+            "id": event.id,
+            "event_name": event.event_name,
+            "location": event.location,
+            "event_date": event.event_date.strftime("%Y-%m-%d"),
+        }
+        if event.event_date >= current_date:
+            event_data["status"] = "Upcoming"
+            scheduled_events += 1
+        else:
+            event_data["status"] = "Completed"
+            completed_events += 1
+        
+        events_list.append(event_data)
+
+    response = {
+        "total_events": len(events_list),
+        "scheduled_events": scheduled_events,
+        "completed_events": completed_events,
+        "events": events_list
+    }
+    return jsonify(response)
+
 
 if __name__ == '__main__':
     with app.app_context():

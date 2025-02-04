@@ -178,9 +178,7 @@
     <!-- <div class="mb-5 text-left mt-0 pt-0">
         <img src="/EASYnergy.png" alt="EASYnergy" class="w-40 mb-4 mt-0 pt-0 mx-0"/>
     </div> -->
-    <!-- User Info -->
-    <div class="user-info">
-    </div>
+
 
 
             <!-- Navigation Links -->
@@ -189,15 +187,13 @@
                 <h2 class="text-2xl mb-[40px] font-bold">Menu</h2>
                 <a 
                     href="/Eventmain" 
-                    class="block py-3 px-4 hover:bg-white hover:bg-opacity-20 rounded-md transition-colors"
-                >
+                    class="block py-3 px-4 hover:bg-white hover:bg-opacity-20 rounded-md transition-colors">
                     <i class="fas fa-calendar mr-3"></i>My Events
                 </a>
 
                 <a 
                     href="/Reports" 
-                    class="block py-3 px-4 hover:bg-white hover:bg-opacity-20 rounded-md transition-colors"
-                >
+                    class="block py-3 px-4 hover:bg-white hover:bg-opacity-20 rounded-md transition-colors">
                     <i class="fas fa-chart-bar mr-3"></i>Reports
                 </a>
             </nav>
@@ -205,8 +201,7 @@
             <div class="mt-auto">
                 <button 
                     on:click={logout} 
-                    class="block py-3 px-4 text-center bg-white bg-opacity-20 hover:bg-opacity-30 rounded-md transition-colors w-full"
-                >
+                    class="block py-3 px-4 text-center bg-white bg-opacity-20 hover:bg-opacity-30 rounded-md transition-colors w-full">
                     <i class="fas fa-sign-out-alt mr-3"></i>Logout
                 </button>
             </div>
